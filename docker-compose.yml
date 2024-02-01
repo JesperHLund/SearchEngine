@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  word-db:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    environment:
+      MSSQL_SA_PASSWORD: "SuperSecret7!"
+      ACCEPT_EULA: "Y"
+    volumes:
+      - mssql-data:/var/opt/mssql
+
+  word-service:
+    build:
+      context: .
+      dockerfile: /WordService/Dockerfile
+    deploy:
+      replicas: 2
+    depends_on:
+      - word-db
+
+  indexer:
+    build:
+      context: .
+      dockerfile: /Indexer/Dockerfile
+    deploy:
+      replicas: 1
+    depends_on:
+      - word-service
+
+  consoleSearch:
+    build:
+      context: .
+      dockerfile: /ConsoleSearch/Dockerfile
+    deploy:
+      replicas: 1
+    depends_on:
+      - word-service
+
+volumes:
+  mssql-data:
